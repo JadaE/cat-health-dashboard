@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#0f766e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Cat Health">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Our Cats · Health Log</title>
+<meta property="og:title" content="Private page"><meta property="og:description" content="Private page."><meta property="og:type" content="website">
+<style>
+:root{--bg:#f4f7f6;--panel:#fff;--text:#1d2b2a;--muted:#5f7472;--border:#d9e3e1;--accent:#0f766e;--accent2:#e6f4f1;--warn:#b45309;--warnbg:#fff7e6;--danger:#b91c1c;--r:14px}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1716;--panel:#17221f;--text:#e5efed;--muted:#94aaa6;--border:#2a3a37;--accent:#2dd4bf;--accent2:#123430;--warn:#fbbf24;--warnbg:#3a2c0e;--danger:#f87171}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+header{position:sticky;top:0;z-index:5;background:var(--panel);border-bottom:1px solid var(--border);padding:calc(env(safe-area-inset-top) + 10px) 14px 10px;display:flex;align-items:center;gap:8px}
+header h1{font-size:19px;margin:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip{border:1px solid var(--border);background:var(--panel);border-radius:999px;padding:7px 12px;font-size:14px;white-space:nowrap;min-height:38px}
+#syncChip{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:13px}
+#syncChip i{width:8px;height:8px;border-radius:50%;background:#aaa;display:inline-block}
+#syncChip[data-s=ok] i{background:#16a34a}#syncChip[data-s=busy] i{background:#eab308}#syncChip[data-s=err] i{background:#dc2626}#syncChip[data-s=off] i{background:#6b7280}
+main{max-width:640px;margin:0 auto;padding:14px 14px calc(env(safe-area-inset-bottom) + 40px)}
+.btn{border:0;border-radius:var(--r);background:var(--accent);color:#fff;padding:14px 18px;font-weight:600;min-height:52px}
+@media (prefers-color-scheme:dark){.btn{color:#04211d}}
+.btn.sec{background:var(--accent2);color:var(--accent)}
+.btn.ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
+.btn.danger{background:transparent;border:1px solid var(--danger);color:var(--danger)}
+.btn.wide{width:100%}
+.cats{display:grid;gap:12px}
+.cat{display:flex;gap:14px;align-items:center;background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:14px;text-align:left;width:100%;min-height:84px}
+.av{width:58px;height:58px;border-radius:50%;flex:none;background:var(--accent2);color:var(--accent);display:grid;place-items:center;font-size:24px;font-weight:700;object-fit:cover;overflow:hidden}
+.av img{width:100%;height:100%;object-fit:cover}
+.cat .nm{font-size:18px;font-weight:700}
+.sub{color:var(--muted);font-size:14px}
+.empty{text-align:center;color:var(--muted);padding:40px 10px}
+.empty .big{font-size:48px}
+.top{display:flex;gap:12px;align-items:center;margin-bottom:14px}
+.top .av{width:72px;height:72px;font-size:30px}
+.top h2{margin:0;font-size:22px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:6px 0 18px}
+.q{border:1px solid var(--border);background:var(--panel);border-radius:var(--r);min-height:76px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px 2px;font-size:13px;font-weight:600}
+.q b{font-size:24px;font-weight:400}
+.q.sym{border-color:var(--warn)}
+.q:active,.cat:active{transform:scale(.98)}
+section{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:14px}
+section h3{margin:0 0 10px;font-size:16px}
+.filters{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:4px}
+.filters button{flex:none}
+.filters .on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.log{list-style:none;margin:0;padding:0}
+.log li{border-top:1px solid var(--border);padding:12px 2px;display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+.log li:first-child{border-top:0}
+.log .ic{font-size:22px;width:30px;text-align:center;flex:none}
+.log .t{font-weight:600}
+.log .n{white-space:pre-wrap;word-break:break-word}
+.flag{background:var(--warnbg);border:1px solid var(--warn);color:var(--text);border-radius:10px;padding:8px 10px;margin-top:6px;font-size:14px}
+.flag::before{content:"⚑ ";color:var(--warn)}
+.badge{display:inline-block;background:var(--warnbg);color:var(--warn);border:1px solid var(--warn);border-radius:999px;font-size:12px;padding:1px 8px;margin-left:6px;vertical-align:middle}
+svg.chart{width:100%;height:auto;display:block}
+svg.chart text{fill:var(--muted);font-size:11px}
+dialog{border:0;border-radius:18px;padding:0;width:min(560px,94vw);max-height:92vh;background:var(--panel);color:var(--text)}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+dialog form,dialog .in{padding:18px;display:grid;gap:12px}
+dialog h2{margin:0;font-size:20px}
+label{display:grid;gap:5px;font-size:14px;color:var(--muted)}
+input,select,textarea{border:1px solid var(--border);background:var(--bg);border-radius:12px;padding:12px;font-size:17px;min-height:50px;width:100%}
+textarea{min-height:90px;resize:vertical}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.acts{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.acts .btn{flex:1}
+.who{display:grid;gap:12px}
+.who button{font-size:22px;min-height:76px}
+.who .on{outline:3px solid var(--accent)}
+.types{display:flex;flex-wrap:wrap;gap:6px}
+.types button{border:1px solid var(--border);background:var(--bg);border-radius:999px;padding:9px 12px;min-height:44px;font-size:15px}
+.types .on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.photo{display:flex;align-items:center;gap:12px}
+#toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 20px);transform:translateX(-50%);background:#111;color:#fff;border-radius:999px;padding:10px 18px;font-size:15px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:50;max-width:90vw}
+#toast.show{opacity:.92}
+.note{font-size:13px;color:var(--muted);text-align:center;margin-top:24px}
+.appt{display:flex;gap:10px;align-items:flex-start;border-top:1px solid var(--border);padding:12px 2px}
+.appt:first-of-type{border-top:0}
+.appt .when{font-weight:700}
+.appt .acts2{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.appt .acts2 button{min-height:44px;padding:8px 14px}
+.hcard{display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:var(--accent2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;min-height:56px;margin-bottom:8px;font-size:16px}
+.past{color:var(--warn);font-weight:600}
+.back{border:0;background:transparent;font-size:26px;padding:0 6px;min-height:44px;min-width:40px}
+</style>
+</head>
+<body>
+<header>
+  <button class="back" id="backBtn" hidden aria-label="Back">‹</button>
+  <h1 id="title">🐾 Our Cats</h1>
+  <span class="chip" id="syncChip" data-s="busy"><i></i><span>Connecting…</span></span>
+  <button class="chip" id="meChip">You: ?</button>
+</header>
+<main id="main"></main>
+
+<dialog id="whoDlg"><div class="in">
+  <h2>Who’s using this phone?</h2>
+  <div class="sub">Just so entries say who logged them. You can change it anytime.</div>
+  <div class="who"><button class="btn sec" data-who="persona">Person A</button><button class="btn sec" data-who="personb">Person B</button></div>
+</div></dialog>
+
+<dialog id="catDlg"><form method="dialog" id="catForm">
+  <h2 id="catDlgTitle">Add a cat</h2>
+  <label>Name<input id="cName" required maxlength="40" autocomplete="off"></label>
+  <div class="row">
+    <label>Birthday (if known)<input id="cBday" type="date"></label>
+    <label>…or age in years<input id="cAge" type="number" inputmode="decimal" min="0" max="35" step="0.5" placeholder="e.g. 3"></label>
+  </div>
+  <label>Sex<select id="cSex"><option value="">Not sure</option><option value="female">Female</option><option value="male">Male</option></select></label>
+  <div class="row">
+    <label>Breed (optional)<input id="cBreed" maxlength="40"></label>
+    <label>Color (optional)<input id="cColor" maxlength="40"></label>
+  </div>
+  <label>Notes (optional)<textarea id="cNotes" maxlength="2000" placeholder="Full name, where they came from, anything to remember"></textarea></label>
+  <div class="photo"><div class="av" id="cPhotoPrev">?</div>
+    <label class="btn ghost" style="display:inline-flex;align-items:center;color:var(--text)">Add photo<input id="cPhoto" type="file" accept="image/*" hidden></label>
+    <button type="button" class="btn ghost" id="cPhotoClear" hidden>Remove</button></div>
+  <div class="sub" id="cEdited"></div>
+  <div class="acts"><button type="button" class="btn danger" id="cDelete" hidden>Delete cat</button><button type="button" class="btn ghost" id="cCancel">Cancel</button><button class="btn" id="cSave">Save</button></div>
+</form></dialog>
+
+<dialog id="logDlg"><form method="dialog" id="logForm">
+  <h2 id="logDlgTitle">Log</h2>
+  <div class="types" id="lTypes"></div>
+  <div id="lWeightRow" class="row">
+    <label>Weight (lb)<input id="lWeight" type="number" inputmode="decimal" min="0.1" max="40" step="0.01" placeholder="e.g. 9.4"></label>
+    <label>Date<input id="lDate" type="date"></label>
+  </div>
+  <label id="lWhenRow">When<input id="lWhen" type="datetime-local"></label>
+  <label>Note<textarea id="lNote" maxlength="2000" placeholder="What happened?"></textarea></label>
+  <div class="flag" id="lFlag" hidden>If this seems concerning, check with your vet.</div>
+  <div class="sub" id="lEdited"></div>
+  <div class="acts"><button type="button" class="btn danger" id="lDelete" hidden>Delete</button><button type="button" class="btn ghost" id="lCancel">Cancel</button><button class="btn" id="lSave">Save</button></div>
+</form></dialog>
+
+<dialog id="apptDlg"><form method="dialog" id="apptForm">
+  <h2 id="apptDlgTitle">Add appointment</h2>
+  <label>Description<input id="aDesc" maxlength="120" required value="General vet appointment"></label>
+  <label>Date and time (Central)<input id="aWhen" type="datetime-local" required></label>
+  <div class="sub" id="aEdited"></div>
+  <div class="acts"><button type="button" class="btn danger" id="aDelete" hidden>Delete</button><button type="button" class="btn ghost" id="aClose">Close</button><button class="btn" id="aSave">Save</button></div>
+</form></dialog>
+
+<dialog id="doneDlg"><form method="dialog" id="doneForm">
+  <h2>Mark done</h2>
+  <div class="sub" id="dInfo"></div>
+  <label>Note (optional)<textarea id="dNote" maxlength="2000" placeholder="Anything to remember from the visit"></textarea></label>
+  <div class="sub">This adds a 🩺 Vet visit entry to the log.</div>
+  <div class="acts"><button type="button" class="btn ghost" id="dClose">Back</button><button class="btn" id="dSave">Mark done</button></div>
+</form></dialog>
+
+<div id="toast"></div>
+<script>
+const TZ='America/Chicago';
+const MEKEY='jl-cat-health-me';
+const PEOPLE={persona:'Person A',personb:'Person B'};
+let me=null;try{me=localStorage.getItem(MEKEY);}catch(_){}if(!PEOPLE[me])me=null;
+/*STORE*/
+const TYPES=[
+  {id:'weight',label:'Weight',ic:'⚖️'},
+  {id:'food',label:'Food',ic:'🍽️'},
+  {id:'water',label:'Water',ic:'💧'},
+  {id:'litter',label:'Litter box',ic:'🚽'},
+  {id:'behavior',label:'Behavior',ic:'🐈'},
+  {id:'symptom',label:'Symptom',ic:'⚑'},
+  {id:'meds',label:'Meds given',ic:'💊'},
+  {id:'vet',label:'Vet visit',ic:'🩺'}];
+const TYPE=Object.fromEntries(TYPES.map(t=>[t.id,t]));
+const VET_LINE='If this seems concerning, check with your vet.';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+let state=Store.load();if(!Array.isArray(state.items))state.items=[];
+let view={cat:null,filter:'all'};
+
+/* ---- time helpers, always America/Chicago ---- */
+function parts(ms){const o={};new Intl.DateTimeFormat('en-US',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date(ms)).forEach(p=>o[p.type]=p.value);return o;}
+function ymd(ms){const p=parts(ms);return `${p.year}-${p.month}-${p.day}`;}
+function localInput(ms){const p=parts(ms);return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}`;}
+// Chicago wall time "YYYY-MM-DDTHH:MM" -> epoch ms
+function fromChicago(s){const [d,t='12:00']=s.split('T');const [y,m,da]=d.split('-').map(Number);const [h,mi]=t.split(':').map(Number);
+  let guess=Date.UTC(y,m-1,da,h,mi);for(let i=0;i<2;i++){const p=parts(guess);const asUTC=Date.UTC(+p.year,+p.month-1,+p.day,+p.hour%24,+p.minute);guess+=Date.UTC(y,m-1,da,h,mi)-asUTC;}return guess;}
+const fmtWhen=ms=>new Intl.DateTimeFormat('en-US',{timeZone:TZ,month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}).format(new Date(ms))+' CT';
+const fmtDay=ms=>new Intl.DateTimeFormat('en-US',{timeZone:TZ,month:'short',day:'numeric',year:'numeric'}).format(new Date(ms));
+function ago(ms){const s=(Date.now()-ms)/1000;if(s<60)return 'just now';if(s<3600)return Math.floor(s/60)+'m ago';if(s<86400)return Math.floor(s/3600)+'h ago';return fmtDay(ms);}
+function ageText(cat){let yrs=null;
+  if(cat.birthday){const [y,m,d]=cat.birthday.split('-').map(Number);yrs=(Date.now()-Date.UTC(y,m-1,d))/(365.25*864e5);}
+  else if(typeof cat.ageYears==='number')yrs=cat.ageYears+(Date.now()-(cat.ageAsOf||Date.now()))/(365.25*864e5);
+  if(yrs==null||!isFinite(yrs)||yrs<0)return '';
+  if(yrs<1){const mo=Math.max(0,Math.floor(yrs*12));return mo+(mo===1?' month':' months')+(cat.birthday?'':' (approx.)');}
+  const y=Math.floor(yrs);return y+(y===1?' year':' years')+(cat.birthday?'':' (approx.)');}
+
+const cats=()=>state.items.filter(x=>x.kind==='cat').sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
+const catById=id=>state.items.find(x=>x.kind==='cat'&&x.id===id);
+const fmtAppt=ms=>new Intl.DateTimeFormat('en-US',{timeZone:TZ,weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}).format(new Date(ms)).replace(/^(\w+), /,'$1 ')+' CT';
+const upcoming=catId=>state.items.filter(x=>x.kind==='appt'&&x.status==='upcoming'&&(!catId||x.catId===catId)).sort((a,b)=>a.at-b.at);
+const shortDesc=d=>/vet/i.test(d||'')?'vet':(d||'appointment');
+function apptHTML(a){const past=a.at<Date.now();
+  return `<div class="appt" data-appt="${esc(a.id)}"><span class="ic" style="font-size:22px">📅</span><div style="flex:1;min-width:0">
+    <div class="when">${esc(fmtAppt(a.at))}${past?' <span class="past">(past)</span>':''}</div><div>${esc(a.description)}</div>
+    <div class="sub">Added by ${esc(PEOPLE[a.createdBy]||'?')}${a.lastEditedBy&&a.lastEditedBy!==a.createdBy?' · edited by '+esc(PEOPLE[a.lastEditedBy]||''):''}</div>
+    <div class="acts2"><button class="btn" data-adone="${esc(a.id)}">Mark done</button><button class="btn ghost" data-aedit="${esc(a.id)}">Edit</button><button class="btn danger" data-acancel="${esc(a.id)}">Cancel</button></div></div></div>`;}
+const logsFor=id=>state.items.filter(x=>x.kind==='log'&&x.catId===id).sort((a,b)=>b.at-a.at);
+function stamp(x){x.updatedAt=Date.now();x.lastEditedBy=me||'';return x;}
+function save(){Store.save(state);}
+function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('show'),2200);}
+function avatar(c){return c.photo?`<div class="av"><img alt="" src="${esc(c.photo)}"></div>`:`<div class="av">${esc((c.name||'?').trim().charAt(0).toUpperCase()||'?')}</div>`;}
+const isWeight=l=>l.type==='weight'&&typeof l.weightLb==='number';
+const lb=n=>(Math.round(n*100)/100).toString()+' lb';
+
+/* ---- render ---- */
+function render(){
+  renderMe();
+  if(view.cat&&!catById(view.cat)){view.cat=null;}
+  $('#backBtn').hidden=!view.cat;
+  if(!view.cat)return renderHome();
+  renderCat(catById(view.cat));
+}
+function renderHome(){
+  $('#title').textContent='🐾 Our Cats';
+  const cs=cats();
+  const weekAgo=Date.now()-7*864e5;
+  const ups=upcoming().filter(a=>catById(a.catId));
+  $('#main').innerHTML=(ups.length?`<section><h3>📅 Upcoming</h3>${ups.map(a=>`<button class="hcard" data-open="${esc(a.catId)}"><span>📅</span><span><b>${esc(catById(a.catId).name)}</b>, ${esc(shortDesc(a.description))}, ${esc(fmtAppt(a.at))}${a.at<Date.now()?' <span class="past">(past)</span>':''}</span></button>`).join('')}</section>`:'')+(cs.length?`<div class="cats">${cs.map(c=>{
+    const ls=logsFor(c.id),w=ls.find(isWeight),last=ls[0],sym=ls.some(l=>l.type==='symptom'&&l.at>weekAgo);
+    const bits=[ageText(c),c.sex?(c.sex==='female'?'Female':'Male'):'',w?lb(w.weightLb):''].filter(Boolean).join(' · ');
+    return `<button class="cat" data-open="${esc(c.id)}">${avatar(c)}<div><div class="nm">${esc(c.name)}${sym?'<span class="badge">symptom this week</span>':''}</div>
+      <div class="sub">${esc(bits||'Tap to start logging')}</div>
+      ${last?`<div class="sub">Last: ${esc(TYPE[last.type]?TYPE[last.type].label:last.type)} · ${esc(ago(last.at))}${last.loggedBy?' · '+esc(PEOPLE[last.loggedBy]||last.loggedBy):''}</div>`:''}</div></button>`;}).join('')}</div>`
+    :`<div class="empty"><div class="big">🐈</div><p>No cats yet. Add your first cat to start logging.</p></div>`)
+    +`<p><button class="btn wide" id="addCat">+ Add a cat</button></p>
+     <p class="note">Shared between two people · times in Central Time (CT)<br>This is a log, not medical advice.</p>`;
+  $('#addCat').onclick=()=>openCat(null);
+}
+function renderCat(c){
+  $('#title').textContent=c.name;
+  const ls=logsFor(c.id);
+  const shown=view.filter==='all'?ls:ls.filter(l=>l.type===view.filter);
+  const bits=[ageText(c),c.sex?(c.sex==='female'?'Female':'Male'):'',c.breed,c.color].filter(Boolean).join(' · ');
+  $('#main').innerHTML=`<div class="top">${avatar(c)}<div style="flex:1"><h2>${esc(c.name)}</h2><div class="sub">${esc(bits)}</div></div>
+      <button class="chip" id="editCat">Edit</button></div>
+    <section><h3>📅 Upcoming</h3>${(()=>{const u=upcoming(c.id);return u.length?u.map(apptHTML).join(''):'<div class="sub">No upcoming appointments.</div>';})()}
+      <p style="margin:10px 0 0"><button class="btn sec wide" id="addAppt">+ Add appointment</button></p></section>
+    ${c.notes?`<section><h3>Notes</h3><div class="n" style="white-space:pre-wrap;word-break:break-word">${esc(c.notes)}</div></section>`:''}
+    <div class="grid">${TYPES.map(t=>`<button class="q${t.id==='symptom'?' sym':''}" data-log="${t.id}"><b>${t.ic}</b>${esc(t.label)}</button>`).join('')}</div>
+    <section><h3>Weight</h3>${chart(ls.filter(isWeight))}</section>
+    <section><h3>Recent entries</h3>
+      <div class="filters">${[{id:'all',label:'All'},...TYPES].map(t=>`<button class="chip${view.filter===t.id?' on':''}" data-f="${t.id}">${esc(t.label)}</button>`).join('')}</div>
+      ${shown.length?`<ul class="log">${shown.slice(0,60).map(entryHTML).join('')}</ul>`:'<div class="sub">Nothing logged yet.</div>'}
+      ${shown.length>60?`<div class="sub">Showing the latest 60 of ${shown.length}.</div>`:''}
+    </section>`;
+  $('#editCat').onclick=()=>openCat(c.id);
+  $('#addAppt').onclick=()=>openAppt(c.id,null);
+}
+function entryHTML(l){const t=TYPE[l.type]||{label:l.type,ic:'•'};
+  return `<li data-entry="${esc(l.id)}"><span class="ic">${t.ic}</span><div style="flex:1;min-width:0">
+    <div><span class="t">${esc(t.label)}${isWeight(l)?': '+esc(lb(l.weightLb)):''}</span></div>
+    ${l.note?`<div class="n">${esc(l.note)}</div>`:''}
+    <div class="sub">${esc(l.type==='weight'?fmtDay(l.at):fmtWhen(l.at))}${l.loggedBy?' · by '+esc(PEOPLE[l.loggedBy]||l.loggedBy):''}${l.lastEditedBy&&l.lastEditedBy!==l.loggedBy?' · edited by '+esc(PEOPLE[l.lastEditedBy]||''):''}</div>
+    ${l.type==='symptom'?`<div class="flag">${VET_LINE}</div>`:''}</div></li>`;}
+function chart(ws){
+  if(!ws.length)return '<div class="sub">No weights yet. Tap ⚖️ Weight to add one.</div>';
+  const pts=ws.slice().sort((a,b)=>a.at-b.at);
+  const W=340,H=170,L=38,R=10,T=12,B=26;
+  const xs=pts.map(p=>p.at),ys=pts.map(p=>p.weightLb);
+  let x0=Math.min(...xs),x1=Math.max(...xs);if(x1===x0){x0-=864e5*3;x1+=864e5*3;}
+  let y0=Math.min(...ys),y1=Math.max(...ys);const pad=Math.max(0.3,(y1-y0)*0.15);y0=Math.max(0,y0-pad);y1=y1+pad;
+  const X=t=>L+(t-x0)/(x1-x0)*(W-L-R),Y=v=>T+(1-(v-y0)/(y1-y0))*(H-T-B);
+  const ticks=[y0,(y0+y1)/2,y1];
+  const path=pts.map((p,i)=>(i?'L':'M')+X(p.at).toFixed(1)+','+Y(p.weightLb).toFixed(1)).join(' ');
+  const short=ms=>new Intl.DateTimeFormat('en-US',{timeZone:TZ,month:'short',day:'numeric'}).format(new Date(ms));
+  const last=pts[pts.length-1],first=pts[0];
+  const diff=pts.length>1?last.weightLb-first.weightLb:0;
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Weight over time">
+    ${ticks.map(v=>`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="currentColor" stroke-opacity=".12"/><text x="${L-5}" y="${Y(v)+4}" text-anchor="end">${v.toFixed(1)}</text>`).join('')}
+    <path d="${path}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>
+    ${pts.map(p=>`<circle cx="${X(p.at).toFixed(1)}" cy="${Y(p.weightLb).toFixed(1)}" r="4" fill="var(--accent)"/>`).join('')}
+    <text x="${L}" y="${H-6}">${esc(short(x0===first.at?first.at:x0+864e5*3))}</text>
+    <text x="${W-R}" y="${H-6}" text-anchor="end">${esc(short(last.at))}</text>
+  </svg><div class="sub">Latest ${esc(lb(last.weightLb))} on ${esc(fmtDay(last.at))}${pts.length>1?` · ${diff>=0?'+':''}${(Math.round(diff*100)/100)} lb since ${esc(fmtDay(first.at))} (${pts.length} weigh-ins)`:''}</div>`;
+}
+
+/* ---- cat editor ---- */
+let catDraft=null,catEditing=null;
+function openCat(id){
+  catEditing=id;const c=id?catById(id):null;
+  catDraft=c?JSON.parse(JSON.stringify(c)):{id:uid(),kind:'cat',name:'',birthday:'',ageYears:null,sex:'',breed:'',color:'',photo:''};
+  $('#catDlgTitle').textContent=c?'Edit '+c.name:'Add a cat';
+  $('#cName').value=catDraft.name;$('#cBday').value=catDraft.birthday||'';$('#cBday').max=ymd(Date.now());
+  $('#cAge').value=!catDraft.birthday&&typeof catDraft.ageYears==='number'?catDraft.ageYears:'';
+  $('#cSex').value=catDraft.sex||'';$('#cNotes').value=catDraft.notes||'';$('#cBreed').value=catDraft.breed||'';$('#cColor').value=catDraft.color||'';
+  $('#cDelete').hidden=!c;$('#cEdited').textContent=c&&c.lastEditedBy?`Last edited by ${PEOPLE[c.lastEditedBy]||''} · ${ago(c.updatedAt)}`:'';
+  photoPrev();$('#catDlg').showModal();if(!c)setTimeout(()=>$('#cName').focus(),50);
+}
+function photoPrev(){$('#cPhotoPrev').innerHTML=catDraft.photo?`<img alt="" src="${esc(catDraft.photo)}">`:'📷';$('#cPhotoClear').hidden=!catDraft.photo;}
+$('#cPhoto').onchange=e=>{const f=e.target.files[0];if(!f)return;const img=new Image();const url=URL.createObjectURL(f);
+  img.onload=()=>{const S=160,cv=document.createElement('canvas');cv.width=cv.height=S;const s=Math.min(img.width,img.height);
+    cv.getContext('2d').drawImage(img,(img.width-s)/2,(img.height-s)/2,s,s,0,0,S,S);URL.revokeObjectURL(url);
+    let q=.8,d=cv.toDataURL('image/jpeg',q);while(d.length>9000&&q>.3){q-=.1;d=cv.toDataURL('image/jpeg',q);}
+    if(d.length>9000){toast('That photo is too detailed to sync, try another');return;}
+    catDraft.photo=d;photoPrev();};
+  img.onerror=()=>toast('Could not read that photo');img.src=url;e.target.value='';};
+$('#cPhotoClear').onclick=()=>{catDraft.photo='';photoPrev();};
+$('#cBday').oninput=()=>{if($('#cBday').value)$('#cAge').value='';};
+$('#cAge').oninput=()=>{if($('#cAge').value)$('#cBday').value='';};
+$('#cCancel').onclick=()=>$('#catDlg').close();
+$('#catForm').onsubmit=e=>{e.preventDefault();
+  const name=$('#cName').value.trim();if(!name){$('#cName').focus();return;}
+  const bday=$('#cBday').value,age=parseFloat($('#cAge').value);
+  if(catEditing&&!catById(catEditing)){$('#catDlg').close();toast('That cat was deleted on the other phone');return;}
+  const prev=catEditing?catById(catEditing):null;
+  Object.assign(catDraft,{name,birthday:bday,sex:$('#cSex').value,breed:$('#cBreed').value.trim(),color:$('#cColor').value.trim(),notes:$('#cNotes').value.trim()});
+  if(bday){catDraft.ageYears=null;catDraft.ageAsOf=null;}
+  else if(isFinite(age)){if(!prev||prev.ageYears!==age||prev.birthday){catDraft.ageYears=age;catDraft.ageAsOf=Date.now();}}
+  else{catDraft.ageYears=null;catDraft.ageAsOf=null;}
+  stamp(catDraft);
+  if(prev){Object.assign(prev,catDraft);}else{catDraft.createdAt=Date.now();catDraft.createdBy=me||'';state.items.push(catDraft);view.cat=catDraft.id;}
+  save();$('#catDlg').close();render();toast(prev?'Saved':`Added ${name}`);};
+$('#cDelete').onclick=()=>{const c=catById(catEditing);if(!c)return;const n=logsFor(c.id).length;
+  if(!confirm(`Delete ${c.name}${n?` and all ${n} log entries`:''}? This removes it for both of you.`))return;
+  state.items=state.items.filter(x=>x.id!==c.id&&x.catId!==c.id);view.cat=null;save();$('#catDlg').close();render();toast('Deleted');};
+
+/* ---- log editor ---- */
+let logDraft=null,logEditing=null;
+function openLog(catId,type,id){
+  logEditing=id||null;const l=id?state.items.find(x=>x.id===id):null;
+  const now=Date.now();
+  logDraft=l?JSON.parse(JSON.stringify(l)):{id:uid(),kind:'log',catId,type,note:'',at:now,loggedBy:me||''};
+  $('#lTypes').innerHTML=TYPES.map(t=>`<button type="button" data-t="${t.id}">${t.ic} ${esc(t.label)}</button>`).join('');
+  $('#lWeight').value=typeof logDraft.weightLb==='number'?logDraft.weightLb:'';
+  $('#lDate').value=ymd(logDraft.at);$('#lDate').max=ymd(now);
+  $('#lWhen').value=localInput(logDraft.at);$('#lNote').value=logDraft.note||'';
+  $('#lDelete').hidden=!l;
+  $('#lEdited').textContent=l?`Logged by ${PEOPLE[l.loggedBy]||'?'} · ${fmtWhen(l.createdAt||l.at)}`+(l.lastEditedBy&&l.updatedAt!==l.createdAt?` · last edited by ${PEOPLE[l.lastEditedBy]||''}`:''):'';
+  setType(logDraft.type);$('#logDlg').showModal();
+  setTimeout(()=>{(logDraft.type==='weight'?$('#lWeight'):$('#lNote')).focus();},50);
+}
+function setType(t){logDraft.type=t;const c=catById(logDraft.catId);
+  $('#logDlgTitle').textContent=`${TYPE[t].ic} ${TYPE[t].label}${c?' · '+c.name:''}`;
+  $('#lTypes').querySelectorAll('[data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+  $('#lWeightRow').hidden=t!=='weight';$('#lWhenRow').hidden=t==='weight';
+  $('#lNote').placeholder=t==='weight'?'Optional note':t==='symptom'?'What did you notice? (e.g. sneezing, skipped breakfast)':'What happened?';
+  $('#lFlag').hidden=t!=='symptom';}
+$('#lTypes').addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(b)setType(b.dataset.t);});
+$('#lCancel').onclick=()=>$('#logDlg').close();
+$('#logForm').onsubmit=e=>{e.preventDefault();
+  const t=logDraft.type,note=$('#lNote').value.trim();
+  if(t==='weight'){const w=parseFloat($('#lWeight').value);if(!(w>0&&w<60)){toast('Enter a weight in pounds');$('#lWeight').focus();return;}
+    logDraft.weightLb=Math.round(w*100)/100;
+    const d=$('#lDate').value||ymd(Date.now());
+    // keep the original time of day if the date did not change; otherwise noon CT on the chosen date
+    logDraft.at=d===ymd(logDraft.at)?logDraft.at:(d===ymd(Date.now())?Date.now():fromChicago(d+'T12:00'));}
+  else{delete logDraft.weightLb;if(!note){toast('Add a short note');$('#lNote').focus();return;}
+    const v=$('#lWhen').value;if(v&&v!==localInput(logDraft.at))logDraft.at=fromChicago(v);}
+  logDraft.note=note;
+  if(logEditing&&!state.items.find(x=>x.id===logEditing)){$('#logDlg').close();toast('That entry was deleted on the other phone');return;}
+  stamp(logDraft);
+  const prev=logEditing?state.items.find(x=>x.id===logEditing):null;
+  if(prev)Object.assign(prev,logDraft);else{logDraft.createdAt=logDraft.updatedAt;logDraft.loggedBy=me||'';state.items.push(logDraft);}
+  save();$('#logDlg').close();render();toast(t==='symptom'?'Logged. '+VET_LINE:'Logged');};
+$('#lDelete').onclick=()=>{if(!confirm('Delete this entry for both of you?'))return;state.items=state.items.filter(x=>x.id!==logEditing);save();$('#logDlg').close();render();toast('Deleted');};
+
+/* ---- appointments ---- */
+const apptById=id=>state.items.find(x=>x.kind==='appt'&&x.id===id);
+let apptCat=null,apptEditing=null,doneId=null;
+function openAppt(catId,id){apptCat=catId;apptEditing=id;const a=id?apptById(id):null;const c=catById(catId);
+  $('#apptDlgTitle').textContent=(a?'Edit appointment':'Add appointment')+(c?' · '+c.name:'');
+  $('#aDesc').value=a?a.description:'General vet appointment';
+  $('#aWhen').value=localInput(a?a.at:fromChicago(ymd(Date.now()+864e5)+'T09:00'));
+  $('#aDelete').hidden=!a;$('#aEdited').textContent=a?`Added by ${PEOPLE[a.createdBy]||'?'}`:'';
+  $('#apptDlg').showModal();}
+$('#aClose').onclick=()=>$('#apptDlg').close();
+$('#apptForm').onsubmit=e=>{e.preventDefault();const desc=$('#aDesc').value.trim(),w=$('#aWhen').value;
+  if(!desc||!w){toast('Add a description and time');return;}
+  if(apptEditing){const a=apptById(apptEditing);if(!a){$('#apptDlg').close();toast('That appointment was deleted on the other phone');return;}
+    a.description=desc;a.at=fromChicago(w);stamp(a);}
+  else{const t=Date.now();state.items.push(stamp({id:uid(),kind:'appt',catId:apptCat,at:fromChicago(w),description:desc,status:'upcoming',createdBy:me||'',createdAt:t}));}
+  save();$('#apptDlg').close();render();toast('Appointment saved');};
+$('#aDelete').onclick=()=>{if(!confirm('Delete this appointment for both of you?'))return;state.items=state.items.filter(x=>x.id!==apptEditing);save();$('#apptDlg').close();render();toast('Deleted');};
+function openDone(id){const a=apptById(id);if(!a)return;doneId=id;$('#dInfo').textContent=`${a.description} · ${fmtAppt(a.at)}`;$('#dNote').value='';$('#doneDlg').showModal();}
+$('#dClose').onclick=()=>$('#doneDlg').close();
+$('#doneForm').onsubmit=e=>{e.preventDefault();const a=apptById(doneId);if(!a){$('#doneDlg').close();return;}
+  const extra=$('#dNote').value.trim(),t=Date.now();
+  const log=stamp({id:uid(),kind:'log',catId:a.catId,type:'vet',at:a.at,note:a.description+(extra?'\n'+extra:''),loggedBy:me||'',createdAt:t,fromAppt:a.id});
+  state.items.push(log);a.status='done';a.doneLogId=log.id;a.doneAt=t;stamp(a);
+  save();$('#doneDlg').close();render();toast('Marked done · added to Vet visit log');};
+
+/* ---- navigation & events ---- */
+$('#main').addEventListener('click',e=>{
+  const o=e.target.closest('[data-open]');if(o){view={cat:o.dataset.open,filter:'all'};history.pushState({cat:view.cat},'','#'+view.cat);render();scrollTo(0,0);return;}
+  const ad=e.target.closest('[data-adone]');if(ad){openDone(ad.dataset.adone);return;}
+  const ae=e.target.closest('[data-aedit]');if(ae){const a=apptById(ae.dataset.aedit);if(a)openAppt(a.catId,a.id);return;}
+  const ac=e.target.closest('[data-acancel]');if(ac){const a=apptById(ac.dataset.acancel);if(!a)return;
+    if(!confirm(`Cancel "${a.description}" on ${fmtAppt(a.at)}? It will be hidden from Upcoming for both of you.`))return;
+    a.status='cancelled';stamp(a);save();render();toast('Appointment cancelled');return;}
+  const q=e.target.closest('[data-log]');if(q){openLog(view.cat,q.dataset.log);return;}
+  const f=e.target.closest('[data-f]');if(f){view.filter=f.dataset.f;render();return;}
+  const en=e.target.closest('[data-entry]');if(en){const l=state.items.find(x=>x.id===en.dataset.entry);if(l)openLog(l.catId,l.type,l.id);}
+});
+$('#backBtn').onclick=()=>{if(history.state&&history.state.cat)history.back();else{view.cat=null;render();}};
+addEventListener('popstate',()=>{const id=location.hash.slice(1);view={cat:catById(id)?id:null,filter:'all'};render();});
+{const id=location.hash.slice(1);if(id&&catById(id))view.cat=id;}
+
+Store.subscribe(data=>{if(data&&Array.isArray(data.items)){state=data;if($('#catDlg').open||$('#logDlg').open||$('#apptDlg').open||$('#doneDlg').open){renderMe();return;}render();}});
+Store.onStatus((s,label)=>{const el=$('#syncChip');el.dataset.s=s;el.querySelector('span').textContent=label;});
+function renderMe(){$('#meChip').textContent=me?`You: ${PEOPLE[me]}`:'You: ?';}
+function askWho(){const d=$('#whoDlg');d.querySelectorAll('[data-who]').forEach(b=>b.classList.toggle('on',b.dataset.who===me));d.showModal();}
+$('#whoDlg').addEventListener('click',e=>{const b=e.target.closest('[data-who]');if(!b)return;me=b.dataset.who;try{localStorage.setItem(MEKEY,me);}catch(_){}
+  $('#whoDlg').close();renderMe();toast(`Hi ${PEOPLE[me]}! Entries will say you logged them.`);});
+$('#whoDlg').addEventListener('cancel',e=>{if(!me)e.preventDefault();});
+$('#meChip').onclick=askWho;
+['catDlg','logDlg','apptDlg','doneDlg'].forEach(id=>$('#'+id).addEventListener('close',()=>render()));
+setInterval(()=>{if(!document.hidden&&!$('#catDlg').open&&!$('#logDlg').open)render();},60000);
+if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
+render();if(!me)askWho();Store.start();
+window.__cats={get state(){return state;},get me(){return me;},store:Store,fromChicago,ymd};
+</script>
+</body>
+</html>
