@@ -1,5 +1,7 @@
 # Pet Health Dashboard
 
+> 🤖 This project was created by [Grok Bot](https://cursor.com) from Cursor.
+
 A small single-page web app for logging pet health: weight, food, water, litter box, behavior, symptoms, meds, vet visits and upcoming appointments, with a weight chart per pet. Data syncs between phones through a here.now Site Data collection and is cached offline in the browser.
 
 - `src/app.html` the app, `src/assets/` icons, manifest and service worker.
