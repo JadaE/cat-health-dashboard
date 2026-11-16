@@ -1,7 +1,7 @@
 // Local stand-in for here.now: serves ./site and emulates the public Site Data endpoint
 // /.herenow/data/<collection> (GET list w/ cursor, POST, PATCH /:id). Usage: node test/mock-server.js [port]
 const http=require('http'),fs=require('fs'),path=require('path');
-const ROOT=path.join(__dirname,'..','site'),PORT=+process.argv[2]||8787;
+const ROOT=process.env.MOCK_ROOT||path.join(__dirname,'..','site'),PORT=+process.argv[2]||8787;
 const recs=[];let n=0;
 const types={'.html':'text/html','.js':'text/javascript','.png':'image/png','.webmanifest':'application/manifest+json','.json':'application/json'};
 http.createServer((q,s)=>{const u=new URL(q.url,'http://x');const m=u.pathname.match(/^\/\.herenow\/data\/[a-z][a-z0-9_]*(?:\/([^/]+))?$/);
@@ -16,5 +16,5 @@ http.createServer((q,s)=>{const u=new URL(q.url,'http://x');const m=u.pathname.m
   if(u.pathname==='/__records')return send(200,recs);
   let p=path.join(ROOT,decodeURIComponent(u.pathname));if(u.pathname.endsWith('/'))p=path.join(p,'index.html');
   if(p.includes('/.herenow/'))return send(404,{});
-  fs.readFile(p,(e,d)=>{if(e){s.writeHead(404);return s.end();}s.writeHead(200,{'content-type':types[path.extname(p)]||'application/octet-stream'});s.end(d);});
+  fs.readFile(p,(e,d)=>{if(e){s.writeHead(404);return s.end();}s.writeHead(200,{'content-type':types[path.extname(p)]||'application/octet-stream','referrer-policy':'no-referrer'});s.end(d);});
 }).listen(PORT,()=>console.log('mock on http://localhost:'+PORT));

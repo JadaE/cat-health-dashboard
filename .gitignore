@@ -2,7 +2,10 @@
 keys/
 .env*
 credentials*
-secret-config.json
+secret-config*.json
+!secret-config.example.json
+backups/
+/docs/*rotation-plan*
 site-config.json
 .herenow/
 herenow/

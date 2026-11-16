@@ -4,8 +4,13 @@
 #   site/_headers              X-Robots-Tag / Referrer-Policy rules (only if here.now honors it)
 #   site/.herenow/data.json    Site Data manifest; the collection name is secret
 #   site/<path_token>/...      the actual app
-import json,pathlib,shutil
-D=pathlib.Path(__file__).resolve().parent.parent;cfg=json.loads((D/'secret-config.json').read_text())
+# Output is private: dirs 0700, files 0600, so other accounts on a shared machine can't read the
+# collection name (data.json, app index.html) or list the path-token directory name.
+# Default app dir is this repo (relative to this file); CAT_HEALTH_DIR optionally overrides it.
+import json,os,pathlib,shutil
+os.umask(0o077)
+D=pathlib.Path(os.environ.get('CAT_HEALTH_DIR') or pathlib.Path(__file__).resolve().parent.parent)
+cfg=json.loads((D/'secret-config.json').read_text())
 tok,coll=cfg['path_token'],cfg['collection']
 out=D/'site'
 if out.exists():shutil.rmtree(out)
@@ -26,4 +31,6 @@ manifest={"collections":{coll:{"fields":{
   "access":{"read":"public","insert":"public","update":"public","delete":"owner"},
   "publicMutation":"open","rateLimit":"120/minute/ip"}}}
 (out/'.herenow/data.json').write_text(json.dumps(manifest,indent=2))
+# shutil.copy keeps source modes, so set every mode explicitly rather than trusting umask alone
+for p in [out,*out.rglob('*')]:os.chmod(p,0o700 if p.is_dir() else 0o600)
 print('built site/ (app under the secret path)')
