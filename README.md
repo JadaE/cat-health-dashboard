@@ -18,6 +18,11 @@ node test/two-phones.js && node test/appts.js       # needs Google Chrome at /us
 ```
 `test/check-cats.js` checks a live deployment: `APP_URL=https://... CAT_NAMES='Name 1,Name 2' node test/check-cats.js`.
 
+## Rotating the collection name (tooling only)
+`python3 tools/prepare-rotation.py [--token]` writes `.rotation/secret-config.next.json` (folder 0700, file 0600, git-ignored) with a new random collection name (and, with `--token`, a new path token), the old collection moved to `retired_collections`. The new values are never printed and `secret-config.json` is only read. `--check` confirms the file is present with private modes. `tools/build.py` lists retired collections in the manifest as owner-only and never puts them in the app; `tools/verify-no-secrets.sh` fails if a retired collection is publicly readable or appears in a served file. Switching to the new config and republishing is a separate, approved step.
+
+Mode/rotation test suites (placeholder values, no network beyond localhost): `bash test/jc36-modes.sh && bash test/jc41-rotation.sh`.
+
 ## People and pets
 The two-person picker uses generic labels (`Person A` = `persona`, `Person B` = `personb`); edit `PEOPLE` and the two buttons in `src/app.html` to use real names. Pets are not hard-coded: they are added in the app and stored in the data collection.
 

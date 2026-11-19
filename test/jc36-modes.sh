@@ -65,7 +65,7 @@ for f in site/x secret-config.json secret-config.next.json secret-config.prev.js
   git -C "$REPO" check-ignore -q "$f" && ok ".gitignore drops $f" || no "$f not ignored"; done
 git -C "$REPO" check-ignore -q secret-config.example.json && no "example config is ignored" || ok "secret-config.example.json stays tracked"
 [ -z "$(git -C "$REPO" ls-files docs/JC-36-rotation-plan.md backups site)" ] && ok "rotation plan, backups, site/ not in the repo" || no "private files tracked"
-[ -z "$(git -C "$REPO" grep -lF -e "$PT" -e "$PC" -- ':!test/jc36-modes.sh' 2>/dev/null)" ] && ok "repo has no placeholder token/collection" || no "repo grep hit"
+[ -z "$(git -C "$REPO" grep -lF -e "$PT" -e "$PC" -- ':!test/jc36-modes.sh' ':!test/jc41-rotation.sh' 2>/dev/null)" ] && ok "repo has no placeholder token/collection" || no "repo grep hit"
 [ -z "$(grep -rlF '/workspace/cat-health' "$REPO/publish.sh" "$REPO/tools")" ] && ok "no hardcoded app dir" || no "hardcoded /workspace/cat-health"
 
 echo "== 7. verify-no-secrets.sh"

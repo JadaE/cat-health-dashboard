@@ -1,12 +1,16 @@
 // Local stand-in for here.now: serves ./site and emulates the public Site Data endpoint
 // /.herenow/data/<collection> (GET list w/ cursor, POST, PATCH /:id). Usage: node test/mock-server.js [port]
+// A collection the manifest (ROOT/.herenow/data.json) marks owner-only (read: owner, e.g. a retired one) answers 401 without auth.
 const http=require('http'),fs=require('fs'),path=require('path');
 const ROOT=process.env.MOCK_ROOT||path.join(__dirname,'..','site'),PORT=+process.argv[2]||8787;
 const recs=[];let n=0;
+const access=c=>{try{const j=JSON.parse(fs.readFileSync(path.join(ROOT,'.herenow','data.json'),'utf8'));return (j.collections[c]||{}).access;}catch(e){return undefined;}};
 const types={'.html':'text/html','.js':'text/javascript','.png':'image/png','.webmanifest':'application/manifest+json','.json':'application/json'};
-http.createServer((q,s)=>{const u=new URL(q.url,'http://x');const m=u.pathname.match(/^\/\.herenow\/data\/[a-z][a-z0-9_]*(?:\/([^/]+))?$/);
+http.createServer((q,s)=>{const u=new URL(q.url,'http://x');const m=u.pathname.match(/^\/\.herenow\/data\/([a-z][a-z0-9_]*)(?:\/([^/]+))?$/);
   const send=(c,o)=>{s.writeHead(c,{'content-type':'application/json'});s.end(JSON.stringify(o));};
-  if(m){let b='';q.on('data',d=>b+=d);q.on('end',()=>{
+  if(m){const acc=access(m[1]),need={GET:'read',POST:'insert',PATCH:'update',DELETE:'delete'}[q.method];
+    if(acc&&acc.read==='owner'&&need&&acc[need]==='owner'&&!q.headers.authorization)return send(401,{error:'owner only'});
+    m[1]=m[2];let b='';q.on('data',d=>b+=d);q.on('end',()=>{
     if(q.method==='GET'&&!m[1]){const lim=+u.searchParams.get('limit')||100,off=+(u.searchParams.get('cursor')||0);const page=recs.slice(off,off+lim);
       return send(200,{records:page,nextCursor:off+lim<recs.length?String(off+lim):null});}
     if(q.method==='POST'&&!m[1]){const r={id:'r'+(++n),data:JSON.parse(b),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};recs.push(r);return send(201,{record:r});}
