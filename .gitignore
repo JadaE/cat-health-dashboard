@@ -37,3 +37,8 @@ logs/
 *.mov
 *.zip
 .DS_Store
+# local overrides, rotation output, stray manifests (defense in depth)
+config.local*
+config.local.json
+.rotation/
+/data.json

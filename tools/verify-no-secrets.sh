@@ -4,6 +4,8 @@
 # The secret path is masked as <TOKEN> in the output.
 # Also checks local site/ modes, that /.herenow/data.json is 404, and that the root page and the
 # manifest URL never contain the token or collection name.
+# Retired collections (secret-config.json "retired_collections", after a rotation) must not appear in any
+# served file, and an unauthenticated read of each must not return HTTP 200. They are masked as <RETIRED>.
 # Options: CAT_HEALTH_DIR=<dir> (app dir; default is the repo root), VERIFY_BASE=<url> (e.g. a local mock).
 set -uo pipefail
 DIR="${CAT_HEALTH_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"; CFG="$DIR/secret-config.json"
@@ -12,17 +14,21 @@ command -v jq >/dev/null || { echo "ERROR: jq is required" >&2; exit 2; }
 cfgval(){ jq -er --arg k "$1" '.[$k] | select(type=="string" and length>0)' "$CFG" 2>/dev/null; }
 TOK=$(cfgval path_token) || { echo "ERROR: path_token empty or missing in secret-config.json" >&2; exit 2; }
 C=$(cfgval collection) || { echo "ERROR: collection empty or missing in secret-config.json" >&2; exit 2; }
+RET=$(jq -r '(.retired_collections // []) as $r | if ($r|type)=="array" then $r[] else error("not a list") end
+  | if type=="string" and test("^[a-z][a-z0-9_]*$") then . else error("bad name") end' "$CFG" 2>/dev/null) \
+  || { echo "ERROR: retired_collections in secret-config.json must be a list of [a-z][a-z0-9_]* names" >&2; exit 2; }
 if [ -n "${VERIFY_BASE:-}" ]; then BASE="$VERIFY_BASE"
 else S=$(cfgval slug) || { echo "ERROR: slug empty or missing in secret-config.json" >&2; exit 2; }; BASE="https://$S.here.now"; fi
 KEYVAL="${HERENOW_API_KEY:-$(cat "$HOME/.herenow/credentials" 2>/dev/null || true)}"
 T=$(mktemp -d); fail=0
 echo "--- local build output modes"
 bash "$DIR/tools/check-site-modes.sh" "$DIR" "$TOK" || fail=1
-mask(){ sed -E "s#$TOK#<TOKEN>#g; s#$C#<COLL>#g"; }
+mask(){ local e="s#$TOK#<TOKEN>#g; s#$C#<COLL>#g" r; for r in $RET; do e="$e; s#$r#<RETIRED>#g"; done; sed -E "$e"; }
 check(){ local path="$1" code
   code=$(curl -s -D "$T/h" -o "$T/f" -w '%{http_code}' "$BASE/$path"); printf '%-34s HTTP %s %7s bytes  ' "/$path" "$code" "$(wc -c <"$T/f")" | mask
   hit=0; [ -n "$KEYVAL" ] && cat "$T/h" "$T/f" | grep -aqF -- "$KEYVAL" && hit=1
   cat "$T/h" "$T/f" | grep -aqiE 'HERENOW_API_KEY|Authorization|Bearer|api[_-]?key|claim_?token|hnk_' && hit=$((hit+2))
+  for r in $RET; do grep -aqF -- "$r" "$T/f" && hit=$((hit+4)); done
   [ $hit = 0 ] && echo clean || { echo "SUSPICIOUS($hit)"; fail=1; }; }
 cd "$DIR/site"; while IFS= read -r f; do f=${f#./}; [[ $f == .herenow/* ]] && continue; check "$f"; done < <(find . -type f | sort)
 check "$TOK/"; check ".herenow/data.json"; check ".herenow/data/$C?limit=100"
@@ -34,6 +40,10 @@ grep -o '<meta name="robots"[^>]*>' "$T/f" || { echo "MISSING meta robots"; fail
 grep -o '<meta name="referrer"[^>]*>' "$T/f" || { echo "MISSING meta referrer"; fail=1; }
 grep -qF "$TOK" <(curl -s "$BASE/") && { echo "ROOT PAGE LEAKS TOKEN"; fail=1; } || echo "root page does not contain the secret path"
 grep -qF "$C" <(curl -s "$BASE/") && { echo "ROOT PAGE LEAKS COLLECTION"; fail=1; } || echo "root page does not contain the collection name"
+for r in $RET; do grep -qF "$r" <(curl -s "$BASE/") && { echo "ROOT PAGE LEAKS A RETIRED COLLECTION"; fail=1; }; done
+if [ -n "$RET" ]; then echo "--- retired collections must not be publicly readable"
+  for r in $RET; do code=$(curl -s -o /dev/null -w '%{http_code}' "$BASE/.herenow/data/$r?limit=1")
+    [ "$code" = 200 ] && { echo "a retired collection is publicly readable (HTTP 200)"; fail=1; } || echo "retired collection: public read HTTP $code"; done; fi
 echo "--- manifest must not be served"
 code=$(curl -s -o "$T/m" -w '%{http_code}' "$BASE/.herenow/data.json")
 [ "$code" = 404 ] && echo "/.herenow/data.json is 404" || { echo "/.herenow/data.json returned HTTP $code (must be 404)"; fail=1; }
